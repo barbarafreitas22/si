@@ -1,6 +1,7 @@
 from abc import ABCMeta, ABC, abstractmethod
 
 from si.base.estimator import Estimator
+from si.data.dataset import Dataset
 
 
 class Model(Estimator, ABC):
@@ -50,6 +51,16 @@ class Model(Estimator, ABC):
         predictions: np.ndarray
             The predicted target values.
         """
+
+    @abstractmethod
+    def _score(self, dataset: Dataset):
+        pass
+
+    def score(self, dataset: Dataset):
+        if self.is_fitted:
+            self._score(dataset)
+        else:
+            raise ValueError("The model should be fitted before estimating an error value. Call the method fit first")
 
     def fit_predict(self, dataset):
         """
