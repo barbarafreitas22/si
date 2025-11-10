@@ -1,6 +1,9 @@
 from abc import ABCMeta, ABC, abstractmethod
 
 from si.base.estimator import Estimator
+
+import numpy as np
+
 from si.data.dataset import Dataset
 
 
@@ -16,7 +19,7 @@ class Model(Estimator, ABC):
         """
         super().__init__(**kwargs)
 
-    def predict(self, dataset):
+    def predict(self, dataset) -> np.ndarray:
         """
         Predict the target values of the dataset.
         The model needs to be fitted before calling this method.
@@ -36,7 +39,7 @@ class Model(Estimator, ABC):
         return self._predict(dataset)
 
     @abstractmethod
-    def _predict(self, dataset):
+    def _predict(self, dataset) -> np.ndarray:
         """
         Predict the target values of the dataset.
         Abstract method that needs to be implemented by all subclasses.
@@ -51,16 +54,6 @@ class Model(Estimator, ABC):
         predictions: np.ndarray
             The predicted target values.
         """
-
-    @abstractmethod
-    def _score(self, dataset: Dataset):
-        pass
-
-    def score(self, dataset: Dataset):
-        if self.is_fitted:
-            self._score(dataset)
-        else:
-            raise ValueError("The model should be fitted before estimating an error value. Call the method fit first")
 
     def fit_predict(self, dataset):
         """
@@ -79,3 +72,45 @@ class Model(Estimator, ABC):
         """
         self.fit(dataset)
         return self.predict(dataset)
+    
+    @abstractmethod
+    def _score(self, dataset: Dataset, predictions: np.ndarray) -> float:
+        """
+        Gives a score for the model, given a dataset and its predictions
+
+        Parameters
+        ----------
+        dataset: Dataset
+            The dataset to fit and predict the target values of.
+
+        predictions: np.ndarray
+            An array with the predictions 
+
+        Returns
+        -------
+        score: float
+            The score.
+        """
+
+    def score(self, dataset: Dataset) -> float:
+        """
+        Gives a score for the model, given a dataset and its predictions
+
+        Parameters
+        ----------
+        dataset: Dataset
+            The dataset to fit and predict the target values of.
+
+        Returns
+        -------
+        score: float
+            The score.
+        """
+        
+        if self.is_fitted():
+
+            predictions = self.predict(dataset=dataset)
+            return float(self._score(dataset, predictions=predictions))
+        
+        else:
+            raise ValueError("Your model is not fitted, please call method.fit")
