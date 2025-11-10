@@ -70,6 +70,7 @@ class VotingClassifier(Model):
             """
             It returns the majority vote of the given predictions
 
+            
             Parameters
             ----------
             pred: np.ndarray
