@@ -197,6 +197,83 @@ class Dataset:
         X = np.random.rand(n_samples, n_features)
         y = np.random.randint(0, n_classes, n_samples)
         return cls(X, y, features=features, label=label)
+    
+
+    def dropna(self):
+        """
+        Removes the samples containing at least one null value (NaN).
+
+        Returns:
+        self
+            The modified Dataset object without samples containing NaNs.
+        """
+        mask = ~np.any(np.isnan(self.X), axis=1)        # ~ inverts the mask to select rows without NaNs
+        self.X = self.X[mask]
+        
+        # Apply the same mask to y if it exists, keeping correspondence
+        if self.y is not None:
+            self.y = self.y[mask]
+        return self
+    
+    def fillna(self, value: Union[float, str] = "mean"):
+        """
+        Replaces all null values with another value the mean or the median of the feature/variable.
+
+        Parameters
+        ----------
+        value: float or "mean" or "median"
+            The value to replace the null values with.
+
+        Returns
+        -------
+        self: Dataset
+            The modified Dataset object without null values.
+        """
+        if isinstance(value, (float, int)):
+            self.X[np.isnan(self.X)] = value
+            return self
+        
+        if not isinstance(value, str): 
+            raise TypeError("Invalid type for 'value.")
+        
+        value = value.lower()
+        
+        if value not in ["mean", "median"]:
+            raise ValueError("Invalid value for 'fillna'. Must be a float, 'mean', or 'median'.")
+        
+        if value == "mean":
+            stats = self.get_mean() 
+        else:
+            self.get_median()
+        
+        nan_rows, nan_cols = np.where(np.isnan(self.X))
+        self.X[nan_rows, nan_cols] = stats[nan_cols]
+
+        return self
+    
+    def remove_by_index (self, index:int) -> "Dataset":
+        """
+        Removes a sample by its index.
+
+        Parameters
+        ----------
+        index: int
+            The index of the sample to remove.
+
+        Returns
+        -------
+        self: Dataset
+            The modified Dataset object with the specified sample removed..
+        """
+
+        if index < 0 or index >= self.X.shape[0]:
+            raise IndexError("Index out of bounds.")
+        self.X = np.delete(self.X, index, axis=0)
+        if self.y is not None:
+            self.y = np.delete(self.y, index, axis=0)
+        return self
+
+
 
 
 if __name__ == '__main__':
