@@ -215,7 +215,7 @@ class Dataset:
             self.y = self.y[mask]
         return self
     
-    def fillna(self, value: Union[float, str] = "mean"):
+    def fillna(self, value: Union[float, str]) -> 'Dataset':
         """
         Replaces all null values with another value the mean or the median of the feature/variable.
 
@@ -244,7 +244,7 @@ class Dataset:
         if value == "mean":
             stats = self.get_mean() 
         else:
-            self.get_median()
+            stats = self.get_median()
         
         nan_rows, nan_cols = np.where(np.isnan(self.X))
         self.X[nan_rows, nan_cols] = stats[nan_cols]
