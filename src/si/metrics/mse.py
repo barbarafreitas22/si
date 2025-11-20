@@ -1,9 +1,8 @@
 import numpy as np
 
-
 def mse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
-    It returns the mean squared error for the y_pred variable.
+    Returns the mean squared error for y_pred.
 
     Parameters
     ----------
@@ -22,7 +21,7 @@ def mse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
 def mse_derivative(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
     """
-    It returns the derivative of the mean squared error for the y_pred variable.
+    Returns the derivative of the mean squared error for y_pred.
 
     Parameters
     ----------

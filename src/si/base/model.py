@@ -107,7 +107,7 @@ class Model(Estimator, ABC):
             The score.
         """
         
-        if self.is_fitted():
+        if self.is_fitted:
 
             predictions = self.predict(dataset=dataset)
             return float(self._score(dataset, predictions=predictions))
