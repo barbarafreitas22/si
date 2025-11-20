@@ -6,7 +6,8 @@ from si.base.model import Model
 from si.data.dataset import Dataset
 
 
-def k_fold_cross_validation(model: Model, dataset: Dataset, scoring: callable = None, cv: int = 3,
+def k_fold_cross_validation(model: Model, dataset: Dataset, 
+                            scoring: callable = None, cv: int = 3,
                             seed: int = None) -> List[float]:
     """
     Perform k-fold cross-validation on the given model and dataset.
