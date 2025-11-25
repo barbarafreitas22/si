@@ -28,12 +28,9 @@ class TestSelectPercentile(unittest.TestCase):
 
         # Initialize selector to keep 50%
         selector = SelectPercentile(percentile=50) 
-        
-        # We need to fit to calculate scores, even if they are random here
+    
         selector.fit(dataset)
         new_dataset = selector.transform(dataset)
-
-        # Check: 50% of 4 features = 2 features
         self.assertEqual(new_dataset.shape(), (10, 2))
         self.assertEqual(new_dataset.X.shape[1], 2)
         

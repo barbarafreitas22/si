@@ -26,7 +26,7 @@ class RidgeRegressionLeastSquares(Model):
     def _fit(self, dataset: Dataset) -> 'RidgeRegressionLeastSquares':
         """
         Estimates the model parameters (theta and theta_zero) using the Normal Equation 
-        after handling data scaling.
+        after data scaling.
         """
         X = dataset.X
         y = dataset.y
@@ -51,6 +51,7 @@ class RidgeRegressionLeastSquares(Model):
         penalty_term[0, 0] = 0.0
 
         # Normal Equation: theta_all = (X^T @ X + lambda * I*)^-1 @ X^T @ y
+        # θ all =A ^-1B.
         
         # A = (X^T @ X + lambda * I*)
         A = X_ext.T.dot(X_ext) + penalty_term

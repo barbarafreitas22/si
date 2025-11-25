@@ -4,9 +4,7 @@ from si.data.dataset import Dataset
 from si.metrics.accuracy import accuracy 
 from si.model_selection.cross_validate import k_fold_cross_validation
 
-
-
-# Type definition for the complex output dictionary
+# Type definition for the output dictionary
 Results = Dict[str, Union[List[Dict[str, Any]], List[float], Dict[str, Any], float]]
 
 
