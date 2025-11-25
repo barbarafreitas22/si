@@ -1,81 +1,43 @@
-import unittest
+from unittest import TestCase
+import os
 import numpy as np
-from si.data.dataset import Dataset
 from si.feature_selection.select_percentile import SelectPercentile
-
-# Mock function to test specific F-score scenarios without external dependencies
-def mock_score_func_tie_breaker(dataset):
-    """
-    Returns fixed F-scores to test the tie-breaking logic.
-    Scenario from Exercise: 10 features, 40% selection (k=4).
-    F-scores: [1.2, 3.4, 2.1, 5.6, 4.3, 5.6, 7.8, 6.5, 5.6, 3.2]
-    Ties at 5.6 are at indices 3, 5, 8. The stable sort must pick 3 and 5.
-    """
-    F_scores = np.array([1.2, 3.4, 2.1, 5.6, 4.3, 5.6, 7.8, 6.5, 5.6, 3.2])
-    p_values = np.zeros_like(F_scores) 
-    return F_scores, p_values
+from si.io.csv_file import read_csv
+from si.statistics.f_classification import f_classification
 
 
-class TestSelectPercentile(unittest.TestCase):
+class TestSelectPercentile(TestCase):
 
-    def test_selection_percentage_basic(self):
-        """Tests basic selection: 50% of 4 features should select 2."""
+    def setUp(self):
+        datasets_base_path = os.path.join('..', '..', 'datasets')
+        self.csv_file = os.path.join(datasets_base_path, 'iris', 'iris.csv')
+        self.dataset = read_csv(filename=self.csv_file, features=True, label=True)
+
+    def test_fit(self):
+        selector = SelectPercentile(percentile=50, score_func=f_classification)
+        selector._fit(self.dataset)
         
-        X = np.random.rand(10, 4) 
-        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
-        features = ['f1', 'f2', 'f3', 'f4']
-        dataset = Dataset(X, y, features=features, label="y")
+        self.assertIsNotNone(selector.F)
+        self.assertIsNotNone(selector.p)
+        self.assertEqual(len(selector.F), self.dataset.X.shape[1])
+        self.assertEqual(len(selector.p), self.dataset.X.shape[1])
 
-        # Initialize selector to keep 50%
-        selector = SelectPercentile(percentile=50) 
-    
-        selector.fit(dataset)
-        new_dataset = selector.transform(dataset)
-        self.assertEqual(new_dataset.shape(), (10, 2))
-        self.assertEqual(new_dataset.X.shape[1], 2)
+    def test_transform(self):
+        selector = SelectPercentile(percentile=50, score_func=f_classification)
+        selector._fit(self.dataset)
+        dataset_selected = selector._transform(self.dataset)
         
-    def test_tie_breaking_logic(self):
-        """
-        Tests the requirement that exactly k features are selected,
-        using the stable sort to resolve ties by original index order.
-        """
+        self.assertIsNotNone(dataset_selected)
+        self.assertEqual(dataset_selected.X.shape[1], 2)
+        self.assertEqual(dataset_selected.X.shape[0], self.dataset.X.shape[0])
+        self.assertEqual(dataset_selected.y.shape[0], self.dataset.y.shape[0])
         
-        X = np.random.rand(5, 10) 
-        y = np.array([0, 1, 0, 1, 0])
-        # Feature names f_0 to f_9
-        features = [f"f_{i}" for i in range(10)] 
-        dataset_tie = Dataset(X, y, features=features, label="y")
+        expected_features = ['petal_length', 'petal_width']
+        self.assertEqual(dataset_selected.features, expected_features) 
+        self.assertEqual(dataset_selected.label, 'species')
 
-        # Initialize selector with mock function and 40% (k=4)
-        selector = SelectPercentile(score_func=mock_score_func_tie_breaker, percentile=40)
-        selector.fit(dataset_tie)
-        
-        new_dataset = selector.transform(dataset_tie)
-
-        # 1. Assert exactly 4 features were selected (40% of 10)
-        self.assertEqual(len(new_dataset.features), 4)
-        
-        # 2. Assert the correct features were selected due to stable sort:
-        # Top scores: f_6 (7.8), f_7 (6.5)
-        # Ties (5.6): f_3, f_5, f_8. Stable sort ensures f_3 and f_5 are picked.
-        # Expected indices (sorted for output): 3, 5, 6, 7
-        expected_features = ['f_3', 'f_5', 'f_6', 'f_7']
-        
-        self.assertListEqual(new_dataset.features, expected_features)
-        
-    def test_selection_percentage_zero(self):
-        """Tests if 0% selection returns zero features."""
-        X = np.random.rand(5, 5) 
-        y = np.array([0, 1, 0, 1, 0])
-        dataset = Dataset(X, y)
-        
-        selector = SelectPercentile(percentile=0)
-        selector.fit(dataset)
-        new_dataset = selector.transform(dataset)
-
-        # Check for 0 features
-        self.assertEqual(new_dataset.shape()[1], 0)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    def test_invalid_percentile(self):
+        with self.assertRaises(ValueError):
+            SelectPercentile(percentile=101)
+        with self.assertRaises(ValueError):
+            SelectPercentile(percentile=-1)

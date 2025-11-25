@@ -28,11 +28,8 @@ def tanimoto_similarity(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
     denominator = norm_x_sq + norm_y_sq - dot_product
     
-    # case when denominator is 0
-    denominator[denominator == 0] = 1.0 
-
+    denominator[denominator == 0] = 1.0 # to avoid division by zero
     similarity = dot_product / denominator
-    
     return 1 - similarity
 
 

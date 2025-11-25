@@ -42,7 +42,7 @@ class RandomForestClassifier(Model):
         self.max_depth = max_depth
         self.mode = mode if mode in {"gini", "entropy"} else "gini"
         self.seed = seed
-        self.trees: List[Tuple[List[str], DecisionTreeClassifier]] = [] # Stores (features_names, tree_instance)
+        self.trees: List[Tuple[List[str], DecisionTreeClassifier]] = [] # (features_names, tree_instance)
         
         # Attributes for Label Encoding/Decoding
         self.label_to_int = None
@@ -55,7 +55,7 @@ class RandomForestClassifier(Model):
         """
         np.random.seed(self.seed)
 
-        # Label Encoding: Convert string labels to integers for np.bincount
+        # Convert string labels to integers for np.bincount
         unique_labels = np.unique(dataset.y)
         self.label_to_int = {label: i for i, label in enumerate(unique_labels)}
         self.int_to_label = {i: label for i, label in enumerate(unique_labels)}
@@ -76,11 +76,11 @@ class RandomForestClassifier(Model):
             # Bootstrap sampling 
             sample_indices = np.random.choice(n_samples, size=n_samples, replace=True)
             
-            # Feature subsampling (Random Forest: sample features without replacement)
+            # Feature subsampling
             feature_indices = np.random.choice(n_total_features, size=self.max_features, replace=False)
             bootstrap_feature_names = [dataset.features[i] for i in feature_indices]
 
-            # Create bootstrap dataset and train the decision tree on it (using y_int)
+            # Create bootstrap dataset and train the decision tree on it 
             bootstrap_dataset = Dataset(
                 X=dataset.X[sample_indices][:, feature_indices],
                 y=y_int[sample_indices],
@@ -112,7 +112,7 @@ class RandomForestClassifier(Model):
         
         for feature_names_used, tree in self.trees:
             
-            # Ensure the test data is presented to the tree with only the features the tree was trained on.
+            # Data is presented to the tree with only the features the tree was trained on.
             
             # Get the original indices of the test features that match the tree's feature subset
             indices_to_extract = [test_feature_names.index(name) for name in feature_names_used]

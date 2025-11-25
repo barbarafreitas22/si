@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import copy
+from typing import Optional
 
 import numpy as np
 
