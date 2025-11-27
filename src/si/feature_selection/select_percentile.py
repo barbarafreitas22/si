@@ -1,52 +1,45 @@
 import numpy as np
 from si.base.transformer import Transformer
 from si.data.dataset import Dataset
-from si.statistics.f_classification import f_classification
+from si.statistics import f_classification
 
 
 class SelectPercentile(Transformer):
-    """
-    Select features according to a percentile of the highest scores.
-    Feature selection is performed using a scoring function
-    that computes a score (and p-value) for each feature.
-    """
-
-    def __init__(self, percentile: float, score_func: callable =f_classification, **kwargs):
+    
+    def __init__(self, percentile: float, score_func: callable = f_classification, **kwargs):
         """
-        Selects features from the given percentile of a score function 
-        and returns a new Dataset object with the selected features.
+        Selects the features from the given percentile of a score function 
+        and returns a new Dataset with the selected features.
 
         Parameters
         ----------
-        score_func: callable
-            Function to compute the score and p-values.
-            Default: f_classification
-        percentile: float
-            Percentile used for select feautures.
+        percentile : float
+            Percentile (0-100) for selecting features.
+        score_func : callable, optional
+            Variance analysis function. 
+            Default: f_classification.
         """
-
         super().__init__(**kwargs)
-
+        
         if not (0 <= percentile <= 100):
             raise ValueError("Percentile must be a float between 0 and 100")
-        
-        self.score_func = score_func
         self.percentile = percentile
+        self.score_func = score_func
         self.F = None
         self.p = None
 
     def _fit(self, dataset: Dataset) -> 'SelectPercentile':
         """
-        Computes the F-scores and p-values for each of the dataset features using the score function.
+        Estimate the F and P values for each feature.
 
         Parameters
         ----------
-        dataset: Dataset
-            The dataset where feautures are selected.
-
+        dataset : Dataset
+            Dataset object where features are selected.
+        
         Returns
         -------
-        self: SelectPercentile
+        self : SelectPercentile
             The instance with the F and P values calculated.
         """
         self.F, self.p = self.score_func(dataset)
@@ -54,29 +47,29 @@ class SelectPercentile(Transformer):
 
     def _transform(self, dataset: Dataset) -> Dataset:
         """
-        Selects the features with the highest scores according to the specified percentile.
-        Handles ties by selecting the first features encountered (lowest index).
+        Selects features with the highest F value up to the specific percentile.
 
         Parameters
         ----------
-        dataset: Dataset
-            The dataset to transform.
-
+        dataset : Dataset
+            Dataset object to select features.
+        
         Returns
         -------
-        dataset: Dataset
-            The transformed dataset with the selected features.
+        dataset : Dataset
+            A new Dataset object with the selected features.
         """
-        len_features = len(dataset.features)
-        k = int(len_features * (self.percentile / 100))
+        threshold = np.percentile(self.F, 100 - self.percentile)
+        
+        mask = self.F >= threshold
 
-        #'Stable sort' preserves original feature index order for tie-breaking.
-        sorted_indices = np.argsort(-self.F, kind='stable')
-        best_indices = sorted_indices[:k]
-        
-        # Sort the best indices to maintain original feature order
-        best_indices.sort()
-        X_selected = dataset.X[:, best_indices]
-        features_selected = [dataset.features[i] for i in best_indices]
-        
-        return Dataset(X=X_selected, y=dataset.y, features=features_selected, label=dataset.label)
+        if mask.sum() > int(len(self.F) * self.percentile / 100):
+            # kind='stable' to maintain original order for equal F values
+            sorted_indices = np.argsort(-self.F, kind='stable') 
+            num_features = int(len(self.F) * self.percentile / 100)
+            selected_indices = sorted_indices[:num_features]
+            mask = np.zeros_like(self.F, dtype=bool)
+            mask[selected_indices] = True
+
+        selected_features = np.array(dataset.features)[mask]
+        return Dataset(X=dataset.X[:, mask], y=dataset.y, features=list(selected_features), label=dataset.label)
