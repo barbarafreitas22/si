@@ -79,10 +79,10 @@ class PCA(Transformer):
         if not self.is_fitted:
             raise ValueError("The PCA needs to be adjusted before it can be used to transform the data.")
 
-        # 1. Center the data using the mean inferred in _fit
+        # Center the data using the mean inferred in _fit
         X_centered = dataset.X - self.mean
 
-        # 2. Project the centered data into the principal components
+        # Project the centered data into the principal components
         # self.components is stored as V^T, we use the transpose here to get V
         X_reduced = np.dot(X_centered, self.components.T)
 
