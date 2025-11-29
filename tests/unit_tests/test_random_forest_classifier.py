@@ -3,8 +3,6 @@ import os
 import unittest
 import numpy as np
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-
 from datasets import DATASETS_PATH
 from si.io.csv_file import read_csv
 from si.model_selection.split import train_test_split

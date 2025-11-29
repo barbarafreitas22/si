@@ -3,8 +3,6 @@ import os
 import unittest
 import numpy as np
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-
 from datasets import DATASETS_PATH
 from si.feature_selection.select_percentile import SelectPercentile
 from si.io.csv_file import read_csv

@@ -44,8 +44,7 @@ class TestKNNRegressor(TestCase):
         self.assertIsInstance(score, float)
         self.assertTrue(score >= 0)
 
-        # Test overfitting scenario
-        # Create a small dataset where we know there are no duplicates
+        # Test overfitting scenario, creates a small dataset where we know there are no duplicates
         from si.data.dataset import Dataset
         X_dummy = np.array([[1, 1], [2, 2], [3, 3]])
         y_dummy = np.array([10, 20, 30])
