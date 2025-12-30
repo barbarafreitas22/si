@@ -131,3 +131,65 @@ class BinaryCrossEntropy(LossFunction):
         # Avoid division by zero
         p = np.clip(y_pred, 1e-15, 1 - 1e-15)
         return - (y_true / p) + (1 - y_true) / (1 - p)
+
+class CategoricalCrossEntropy(LossFunction):
+    """
+    Computes the cross-entropy loss between true labels and predicted labels.
+
+    It quantifies the difference between two probability distributions: the true distribution 
+    (100% for the correct class) and the predicted distribution.
+    """
+
+    def forward(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        """
+        Calculates the mean loss value for the given predictions.
+
+        The calculation involves determining the negative log-likelihood of the 
+        true class. To prevent numerical instability, the predictions are clipped 
+        to a range.
+
+        Parameters
+        ----------
+        y_true : np.ndarray
+            The ground truth labels. 
+            Shape: (n_samples, n_classes).
+        y_pred : np.ndarray
+            The predicted probability distribution for each sample.
+            Shape: (n_samples, n_classes).
+
+        Returns
+        -------
+        float
+            The scalar loss value, averaged over all samples in the batch.
+        """
+        # Ensure numerical stability by clipping predictions
+        clipped_predictions = np.clip(y_pred, 1e-15, 1 - 1e-15)
+        
+        # Compute the cross-entropy loss
+        sum_loss = -np.sum(y_true * np.log(clipped_predictions))
+        
+        return sum_loss / y_true.shape[0]
+
+    def derivative(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        """
+        Computes the gradient of the loss with respect to the predictions.
+
+        This gradient indicates the direction and magnitude that predictions 
+        need to change to minimize the error. 
+        Parameters
+        ----------
+        y_true : np.ndarray
+            The truth labels.
+        y_pred : np.ndarray
+            The predicted probabilities.
+
+        Returns
+        -------
+        np.ndarray
+            A matrix of the same shape as y_pred containing the gradients.
+        """
+        # Ensure numerical stability 
+        clipped_predictions = np.clip(y_pred, 1e-15, 1 - 1e-15)
+        
+        # Compute the gradient
+        return - (y_true / clipped_predictions) / y_true.shape[0]
